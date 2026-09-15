@@ -1,0 +1,76 @@
+:root {
+  font-family: system-ui, sans-serif;
+  color: #172b3a;
+  background: #f4f6f8;
+  line-height: 1.5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+main, .site-header, footer {
+  max-width: 64rem;
+  margin-inline: auto;
+  padding: 1rem;
+}
+
+.site-header, nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+a {
+  color: #075a94;
+}
+
+a:focus-visible {
+  outline: 3px solid #075a94;
+  outline-offset: 4px;
+}
+
+section {
+  margin-block: 1.5rem;
+}
+
+.books-grid {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: 1rem;
+}
+
+.book-card {
+  height: 100%;
+  padding: 1rem;
+  border: 1px solid #c7d2dc;
+  border-radius: 0.5rem;
+  background: white;
+}
+
+.author-genre {
+  color: #455b6b;
+  font-size: 0.95rem;
+}
+
+.status {
+  font-weight: 600;
+  color: #754000;
+}
+
+.available {
+  color: #176139;
+}
