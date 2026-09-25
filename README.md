@@ -5,10 +5,10 @@
 
 ## Середовище розробки
 - **ОС:** Windows 11 (Варіант А: нативна розробка + Docker Desktop)
-- **Node.js:** v26.8.2
-- **npm:** 11.19.1
-- **Git:** 2.55.0
-- **Docker Desktop:** v29.8.0 / Docker Compose v2
+- **Node.js:** v24.21.0
+- **npm:** 11.19.0
+- **Git:** 2.55.0.windows.5
+- **Docker:** 29.8.0 (build 88096ef)
 
 ## Запуск проєкту
 
