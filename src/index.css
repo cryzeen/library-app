@@ -74,3 +74,120 @@ section {
 .available {
   color: #176139;
 }
+
+/* Навігація та доступність */
+.site-header nav { display: block; }
+.nav-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 1rem;
+  background: #000;
+  color: #fff;
+  padding: 0.5rem;
+  z-index: 1000;
+}
+.skip-link:focus {
+  top: 1rem;
+}
+
+/* Статуси наявності книги */
+.status {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.status-available {
+  background: #e6f4ea;
+  color: #137333;
+}
+.status-unavailable {
+  background: #fce8e6;
+  color: #c5221f;
+}
+
+/* Сітка карток каталогу */
+.book-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0;
+}
+.book-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1.25rem;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.author-meta {
+  color: #555;
+  font-size: 0.95rem;
+}
+
+/* Спільні стани та форма заявки */
+.empty-state {
+  padding: 1.5rem;
+  border: 1px dashed #9aa0a6;
+  border-radius: 8px;
+  background: #f8f9fa;
+  text-align: center;
+}
+.notice-box {
+  background: #fff8e1;
+  border-left: 4px solid #fbc02d;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+}
+.form-field {
+  display: grid;
+  gap: 0.4rem;
+  margin-block: 1rem;
+  max-width: 36rem;
+}
+.form-field label { font-weight: 600; }
+.form-field input, .form-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.625rem;
+  border: 1px solid #70757a;
+  border-radius: 4px;
+  font: inherit;
+}
+.form-field textarea { resize: vertical; }
+.field-hint { margin: 0; font-size: 0.8rem; color: #5f6368; }
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+.app-button {
+  padding: 0.625rem 1.25rem;
+  border: 1px solid #1a73e8;
+  border-radius: 4px;
+  font: inherit;
+  cursor: pointer;
+}
+.app-button-primary { background: #1a73e8; color: #fff; }
+.app-button-secondary { background: transparent; color: #1a73e8; }
+.app-button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+button:focus-visible, input:focus-visible, textarea:focus-visible {
+  outline: 2px solid #1a73e8;
+  outline-offset: 2px;
+}

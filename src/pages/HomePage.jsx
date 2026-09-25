@@ -1,31 +1,20 @@
-import BookCard from '../components/BookCard.jsx'
-import { books } from '../data/books.js'
+import { books } from '../data/books.js';
+import Section from '../components/ui/Section.jsx';
+import CatalogSummary from '../components/books/CatalogSummary.jsx';
+import BookList from '../components/books/BookList.jsx';
 
 export default function HomePage() {
   return (
     <>
-      <section id="about" aria-labelledby="about-title">
-        <h1 id="about-title">Каталог бібліотеки</h1>
+      <Section id="about" title="Про бібліотеку">
         <p>Електронна база даних книжкового фонду для навчальних та наукових робіт.</p>
         <p>Переглядайте доступні видання та перевіряйте статус примірників у читальній залі.</p>
-      </section>
+      </Section>
 
-      <section id="catalog" aria-labelledby="catalog-title">
-        <h2 id="catalog-title">Книжковий фонд</h2>
-        <p>Книг у каталозі: {books.length}</p>
-
-        {books.length === 0 ? (
-          <p>Книжковий фонд порожній або видання ще не додані.</p>
-        ) : (
-          <ul className="books-grid">
-            {books.map((book) => (
-              <li key={book.id}>
-                <BookCard item={book} />
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      <Section id="catalog" title="Книжковий фонд">
+        <CatalogSummary total={books.length} />
+        <BookList items={books} />
+      </Section>
     </>
-  )
+  );
 }
