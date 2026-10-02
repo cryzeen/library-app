@@ -123,6 +123,7 @@ section {
   list-style: none;
   padding: 0;
   margin: 1.5rem 0;
+  align-items: start;
 }
 .book-card {
   border: 1px solid #e0e0e0;
@@ -190,4 +191,53 @@ section {
 button:focus-visible, input:focus-visible, textarea:focus-visible {
   outline: 2px solid #1a73e8;
   outline-offset: 2px;
+}
+
+.catalog-filters {
+  margin-block: 1rem;
+}
+
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-block: 0.75rem;
+  cursor: pointer;
+}
+
+.checkbox-field input {
+  width: auto;
+  cursor: pointer;
+}
+
+.results-count {
+  font-weight: 600;
+  margin-block: 0.5rem 1rem;
+}
+
+.request-summary {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  background-color: #f1f5f9;
+  border-left: 4px solid #0284c7;
+  border-radius: 4px;
+}
+
+.request-summary dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.5rem 1rem;
+  margin-block: 0.75rem;
+}
+
+.request-summary dt {
+  font-weight: 600;
+  color: #334155;
+}
+
+.summary-disclaimer,
+.draft-notice {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-top: 0.5rem;
 }

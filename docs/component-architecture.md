@@ -43,3 +43,28 @@ App
 1. **Усунення дублювання правил подання (`AvailabilityBadge`)**: Відображення статусу примірника («В наявності» / «Видана читачу») винесено в окремий предметний компонент, спільний для карток каталогу та блоку читацької заявки.
 2. **Композиція через children (`Section`, `FormField`)**: Виключає надлишкові прапорці конфігурації. `Section` інкапсулює доступність та розмітку секції, а сторінки передають необхідний зміст.
 3. **Захист від порожніх даних (`EmptyState`)**: Компоненти `BookList` та `BorrowRequestPage` коректно обробляють відсутність даних без аварійного завершення рендерингу.
+
+## 4. Керування станом та контракти взаємодії
+
+### Карта стану
+
+| Значення | Категорія | Власник стану | Споживачі | Дія скидання |
+| :--- | :--- | :--- | :--- | :--- |
+| `books` | Початкові предметні дані | Модуль `src/data/books.js` | `App`, провайдер, `BookList` | Не скидається (статичні дані) |
+| `detailsOpen` | Локальний стан UI | Конкретна `BookCard` | `BookCard` | Демонтування або повторний клік |
+| `query`, `availableOnly` | Стан фільтрів каталогу | `HomePage` (хук `useBookFilters`) | `BookFilters`, `BookList` | Виклик `resetFilters` |
+| `selectedId` | Спільний стан вибору | `BookSelectionProvider` (Context API) | `CatalogContainer`, `BorrowRequestContainer` | Виклик `clearSelection` |
+| `draft` | Локальна чернетка замовлення | `BorrowRequestPage` | `BorrowRequestForm`, `BorrowRequestSummary` | Виклик `handleReset` або зміна книги |
+| `visibleItems` | Похідний список (без `useState`) | Обчислюється під час рендеру | `BookList`, лічильник результатів | Автоматично при зміні `query` / `availableOnly` |
+| `selectedItem` | Похідний предмет (без `useState`) | Обчислюється в провайдері | `BorrowRequestContainer` | Автоматично при зміні `selectedId` |
+| `document.title` | Зовнішня синхронізація | `useEffect` у `BorrowRequestPage` | DOM браузера (вкладка) | Очищення ефекту при зміні залежності / демонтажі |
+
+### Розширені контракти взаємодії (Callback-функції)
+- `onSelect(bookId)`: `BookCard` -> передає ідентифікатор книги для збереження вибору у провайдері.
+- `onQueryChange(text)`: `BookFilters` -> передає введений рядок для оновлення пошукового стану `query`.
+- `onAvailableOnlyChange(flag)`: `BookFilters` -> передає булевий стан для фільтрації лише доступних видань.
+- `onReset()`: `BookFilters` -> ініціює очищення параметрів пошуку та доступності.
+- `onTicketNumberChange(val)`: `BorrowRequestForm` -> передає номер квитка для оновлення `draft.ticketNumber`.
+- `onPurposeChange(val)`: `BorrowRequestForm` -> передає текст мети для оновлення `draft.purpose`.
+- `onReadingRoomOnlyChange(flag)`: `BorrowRequestForm` -> змінює прапорець замовлення лише в читальний зал.
+- `onClearSelection()`: `BorrowRequestPage` -> передає сигнал для скидання вибору (`selectedId = null`).
