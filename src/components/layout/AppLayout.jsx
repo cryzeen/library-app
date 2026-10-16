@@ -1,18 +1,24 @@
-import SiteHeader from './SiteHeader.jsx';
+import { Outlet } from 'react-router'
+import SiteHeader from './SiteHeader.jsx'
+import BookSelectionProvider from '../../providers/BookSelectionProvider.jsx'
 
-export default function AppLayout({ title, links, children }) {
+const navigationLinks = [
+  { to: '/', label: 'Головна', end: true },
+  { to: '/books', label: 'Каталог книг' },
+  { to: '/loans', label: 'Заявки' },
+]
+
+export default function AppLayout({ items }) {
   return (
     <>
-      <a className="skip-link" href="#main-content">
-        Перейти до вмісту
-      </a>
-      <SiteHeader title={title} links={links} />
+      <a className="skip-link" href="#main-content">Перейти до вмісту</a>
+      <SiteHeader title="Бібліотека" links={navigationLinks} />
       <main id="main-content" tabIndex={-1}>
-        {children}
+        <BookSelectionProvider items={items}>
+          <Outlet />
+        </BookSelectionProvider>
       </main>
-      <footer className="site-footer">
-        Навчальний проєкт. Електронний каталог бібліотеки та читацькі заявки.
-      </footer>
+      <footer>Навчальний проєкт. Електронна бібліотека.</footer>
     </>
-  );
+  )
 }

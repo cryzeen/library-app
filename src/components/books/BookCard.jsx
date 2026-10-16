@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router'
 import AvailabilityBadge from './AvailabilityBadge.jsx'
 import AppButton from '../ui/AppButton.jsx'
 
@@ -8,7 +9,11 @@ export default function BookCard({ item, selected, onSelect }) {
 
   return (
     <article className="book-card">
-      <h3>{item.title}</h3>
+      <h3>
+        <Link to={`/books/${encodeURIComponent(item.id)}`}>
+          {item.title}
+        </Link>
+      </h3>
       <p className="author-genre">
         <strong>{item.author}</strong> — {item.genre} ({item.year})
       </p>

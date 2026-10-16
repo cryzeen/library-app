@@ -1,34 +1,21 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import PageHeading from '../components/ui/PageHeading.jsx'
 import Section from '../components/ui/Section.jsx'
-import EmptyState from '../components/ui/EmptyState.jsx'
 import AppButton from '../components/ui/AppButton.jsx'
 import AvailabilityBadge from '../components/books/AvailabilityBadge.jsx'
 import BorrowRequestForm from '../components/requests/BorrowRequestForm.jsx'
 import BorrowRequestSummary from '../components/requests/BorrowRequestSummary.jsx'
 
-function createEmptyDraft() {
-  return {
-    ticketNumber: '',
-    purpose: '',
-    readingRoomOnly: false,
-  }
-}
+const emptyDraft = { ticketNumber: '', purpose: '', readingRoomOnly: false }
 
-export default function BorrowRequestPage({ item, onClearSelection }) {
-  const [draft, setDraft] = useState(createEmptyDraft)
-
-  const title = item
-    ? `Бібліотека: Замовлення «${item.title}»`
-    : 'Бібліотека — База даних книжкового фонду'
-
-  useEffect(() => {
-    const previousTitle = document.title
-    document.title = title
-
-    return () => {
-      document.title = previousTitle
-    }
-  }, [title])
+export default function BorrowRequestPage({
+  title,
+  item,
+  initialDraft = emptyDraft,
+  onCancel,
+  cancelLabel = 'Вийти без збереження',
+}) {
+  const [draft, setDraft] = useState(() => ({ ...initialDraft }))
 
   function handleTicketNumberChange(ticketNumber) {
     setDraft((previous) => ({ ...previous, ticketNumber }))
@@ -43,47 +30,31 @@ export default function BorrowRequestPage({ item, onClearSelection }) {
   }
 
   function handleReset() {
-    setDraft(createEmptyDraft())
-  }
-
-  if (!item) {
-    return (
-      <Section id="request" title="Оформлення замовлення книги">
-        <EmptyState title="Книгу не обрано.">
-          <p>
-            Будь ласка, <a href="#catalog">оберіть видання у каталозі</a> для підготовки читацької заявки.
-          </p>
-        </EmptyState>
-      </Section>
-    )
+    setDraft({ ...emptyDraft })
   }
 
   return (
-    <Section id="request" title="Оформлення замовлення книги">
-      <div style={{ marginBottom: '1rem' }}>
+    <>
+      <PageHeading title={title} />
+      <Section id="request-editor" title="Поля та підсумок">
         <p>
-          Обрано видання: <strong>«{item.title}»</strong> ({item.author}) —{' '}
-          <AvailabilityBadge available={item.isAvailable} />
+          Видання «{item.title}» ({item.author}):{' '}
+          <AvailabilityBadge available={item.available ?? item.isAvailable} />
         </p>
-      </div>
-
-      <BorrowRequestForm
-        idPrefix="borrow-draft"
-        bookTitle={item.title}
-        draft={draft}
-        onTicketNumberChange={handleTicketNumberChange}
-        onPurposeChange={handlePurposeChange}
-        onReadingRoomOnlyChange={handleReadingRoomOnlyChange}
-        onReset={handleReset}
-      />
-
-      <BorrowRequestSummary bookTitle={item.title} draft={draft} />
-
-      <div style={{ marginTop: '1.5rem' }}>
-        <AppButton variant="secondary" onClick={onClearSelection}>
-          Скасувати вибір і очистити замовлення
-        </AppButton>
-      </div>
-    </Section>
+        <BorrowRequestForm
+          idPrefix="request-draft"
+          bookTitle={item.title}
+          draft={draft}
+          onTicketNumberChange={handleTicketNumberChange}
+          onPurposeChange={handlePurposeChange}
+          onReadingRoomOnlyChange={handleReadingRoomOnlyChange}
+          onReset={handleReset}
+        />
+        <BorrowRequestSummary bookTitle={item.title} draft={draft} />
+      </Section>
+      <AppButton variant="secondary" onClick={onCancel}>
+        {cancelLabel}
+      </AppButton>
+    </>
   )
 }
