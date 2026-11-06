@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import useRequests from '../hooks/useRequests.js'
 import RequestPage from './RequestPage.jsx'
@@ -7,6 +8,22 @@ export default function RequestEditPage({ items }) {
   const { requestId } = useParams()
   const navigate = useNavigate()
   const { requests, updateRequest } = useRequests()
+
+  const pageAlive = useRef(false)
+  useEffect(() => {
+    pageAlive.current = true
+    return () => {
+      pageAlive.current = false
+    }
+  }, [])
+
+  const activeId = useRef(requestId)
+  useEffect(() => {
+    activeId.current = requestId
+    return () => {
+      activeId.current = null
+    }
+  }, [requestId])
 
   const request = requests.find((entry) => String(entry.id) === String(requestId))
   if (!request) {
@@ -18,9 +35,9 @@ export default function RequestEditPage({ items }) {
     return <NotFoundPage title="Книга заявки відсутня в каталозі" />
   }
 
-  function handleSave(input) {
-    const result = updateRequest(request.id, input)
-    if (result.ok) {
+  async function handleSave(input) {
+    const result = await updateRequest(request.id, input)
+    if (result.ok && pageAlive.current && activeId.current === request.id) {
       navigate(`/loans/${encodeURIComponent(result.record.id)}`, { replace: true })
     }
     return result

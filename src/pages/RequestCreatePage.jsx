@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 import PageHeading from '../components/ui/PageHeading.jsx'
 import EmptyState from '../components/ui/EmptyState.jsx'
@@ -11,6 +12,14 @@ export default function RequestCreatePage({ items }) {
   const navigate = useNavigate()
   const { selectedId, clearSelection } = useBookSelection()
   const { createRequest } = useRequests()
+
+  const pageAlive = useRef(false)
+  useEffect(() => {
+    pageAlive.current = true
+    return () => {
+      pageAlive.current = false
+    }
+  }, [])
 
   const bookId = searchParams.get('bookId')
 
@@ -38,9 +47,9 @@ export default function RequestCreatePage({ items }) {
     return <NotFoundPage title="Книгу нової заявки не знайдено" />
   }
 
-  function handleSave(input) {
-    const result = createRequest(input)
-    if (result.ok) {
+  async function handleSave(input) {
+    const result = await createRequest(input)
+    if (result.ok && pageAlive.current) {
       clearSelection()
       navigate(`/loans/${encodeURIComponent(result.record.id)}`, { replace: true })
     }

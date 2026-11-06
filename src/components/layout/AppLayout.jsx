@@ -18,7 +18,7 @@ export default function AppLayout({ items }) {
       <SiteHeader title="Бібліотека" links={navigationLinks} />
       <main id="main-content" tabIndex={-1}>
         <BookSelectionProvider items={items}>
-          <RequestsProvider items={items}>
+          <RequestsProvider>
             <Outlet />
           </RequestsProvider>
         </BookSelectionProvider>

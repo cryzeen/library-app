@@ -1,11 +1,11 @@
 import { Link } from 'react-router'
 import AppButton from '../ui/AppButton.jsx'
 
-export default function RequestTable({ requests, items, onDelete }) {
+export default function RequestTable({ requests, items, onDelete, isMutating = false }) {
   return (
     <div className="table-scroll">
       <table className="requests-table">
-        <caption>Читацькі заявки поточної локальної колекції</caption>
+        <caption>Читацькі заявки</caption>
         <thead>
           <tr>
             <th scope="col">Книга та мета</th>
@@ -35,7 +35,11 @@ export default function RequestTable({ requests, items, onDelete }) {
                   <p>
                     <Link to={`${path}/edit`}>Редагувати</Link>
                   </p>
-                  <AppButton variant="secondary" onClick={() => onDelete(request)}>
+                  <AppButton
+                    variant="secondary"
+                    disabled={isMutating}
+                    onClick={() => onDelete(request)}
+                  >
                     Видалити
                   </AppButton>
                 </td>

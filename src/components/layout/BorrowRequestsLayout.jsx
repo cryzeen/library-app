@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from 'react-router'
 import RequestNotice from '../requests/RequestNotice.jsx'
+import RequestsGate from '../requests/RequestsGate.jsx'
 
 export default function BorrowRequestsLayout() {
   return (
@@ -10,9 +11,13 @@ export default function BorrowRequestsLayout() {
         </NavLink>
         <NavLink to="/loans/new">Нова заявка</NavLink>
       </nav>
-      <p className="field-hint">Локальні дані зберігаються до перезавантаження сторінки.</p>
+      <p className="field-hint">
+        У режимі mock дані зберігаються в localStorage цього браузера.
+      </p>
       <RequestNotice />
-      <Outlet />
+      <RequestsGate>
+        <Outlet />
+      </RequestsGate>
     </div>
   )
 }

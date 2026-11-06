@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import PageHeading from '../components/ui/PageHeading.jsx'
 import EmptyState from '../components/ui/EmptyState.jsx'
@@ -10,14 +10,24 @@ import useRequestFilters from '../hooks/useRequestFilters.js'
 import useDeleteRequest from '../hooks/useDeleteRequest.js'
 
 export default function RequestsPage({ items }) {
-  const { requests } = useRequests()
+  const { requests, reload, isMutating } = useRequests()
   const filters = useRequestFilters(requests, items)
   const deleteWithConfirmation = useDeleteRequest(items)
   const [error, setError] = useState('')
 
-  function handleDelete(request) {
+  const pageAlive = useRef(false)
+  useEffect(() => {
+    pageAlive.current = true
+    return () => {
+      pageAlive.current = false
+    }
+  }, [])
+
+  async function handleDelete(request) {
+    if (isMutating) return
     setError('')
-    const result = deleteWithConfirmation(request)
+    const result = await deleteWithConfirmation(request)
+    if (!pageAlive.current) return
     if (!result.ok && !result.cancelled) {
       setError(result.message)
     }
@@ -26,9 +36,18 @@ export default function RequestsPage({ items }) {
   return (
     <>
       <PageHeading title="Читацькі заявки" />
-      <p>
-        <Link to="/loans/new">Створити нову заявку</Link>
-      </p>
+      <div className="form-actions">
+        <p>
+          <Link to="/loans/new">Створити нову заявку</Link>
+        </p>
+        <AppButton
+          variant="secondary"
+          disabled={isMutating}
+          onClick={() => void reload()}
+        >
+          Оновити дані
+        </AppButton>
+      </div>
 
       <RequestFilters
         query={filters.query}
@@ -44,6 +63,7 @@ export default function RequestsPage({ items }) {
         Показано заявок: {filters.visibleRequests.length} із {requests.length}
       </p>
 
+      <p role="status">{isMutating ? 'Опрацювання зміни...' : ''}</p>
       {error && <p role="alert" className="field-error">{error}</p>}
 
       {requests.length === 0 ? (
@@ -63,6 +83,7 @@ export default function RequestsPage({ items }) {
           requests={filters.visibleRequests}
           items={items}
           onDelete={handleDelete}
+          isMutating={isMutating}
         />
       )}
     </>
