@@ -258,3 +258,39 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
   vertical-align: top;
 }
 .requests-table caption { text-align: left; margin-block: 0.75rem; }
+
+.field-error {
+  color: #9c1c24;
+  margin-top: 0.25rem;
+  font-weight: 600;
+}
+
+[aria-invalid="true"] {
+  border-color: #9c1c24;
+}
+
+.request-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  align-items: end;
+  margin-block: 1rem;
+}
+
+.request-filters select,
+.request-filters input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #687d8d;
+  border-radius: 0.375rem;
+  font: inherit;
+}
+
+.operation-notice {
+  margin-block: 1rem;
+}
+
+.requests-table td,
+main h1 {
+  overflow-wrap: anywhere;
+}

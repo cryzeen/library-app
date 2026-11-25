@@ -1,79 +1,107 @@
 # Архітектура компонентів: Веб-сайт бази даних бібліотеки
 
-## 1. Ієрархія компонентів
+## 1. Ієрархія компонентів та сервісного шару
 App (Routes)
  └── AppLayout (`/`)
       ├── SiteHeader
       │    └── MainNav (Link, NavLink)
       ├── main (id="main-content")
       │    └── BookSelectionProvider (Context API)
-      │         └── Outlet
-      │              ├── HomePage (`/`)
-      │              ├── BookListPage / CatalogContainer (`/books`)
-      │              │    ├── PageHeading
-      │              │    └── Section (Пошук та вибір)
-      │              │         ├── CatalogSummary
-      │              │         ├── BookFilters (`useSearchParams`)
-      │              │         └── BookList
-      │              │              ├── BookCard (для кожного елемента)
-      │              │              │    └── AvailabilityBadge
-      │              │              └── EmptyState (якщо порожньо)
-      │              ├── BookDetailsPage (`/books/:bookId`)
-      │              │    ├── PageHeading
-      │              │    └── AvailabilityBadge
-      │              ├── BorrowRequestsLayout (`/loans`)
-      │              │    ├── NavLink (навігація розділу)
-      │              │    └── Outlet
-      │              │         ├── BorrowRequestsPage (`/loans`)
-      │              │         │    └── Table (список заявок)
-      │              │         ├── BorrowRequestCreatePage (`/loans/new`)
-      │              │         │    └── BorrowRequestPage
-      │              │         │         ├── PageHeading
-      │              │         │         ├── Section (Поля та підсумок)
-      │              │         │         │    ├── AvailabilityBadge
-      │              │         │         │    ├── BorrowRequestForm
-      │              │         │         │    └── BorrowRequestSummary
-      │              │         │         └── EmptyState
-      │              │         └── BorrowRequestEditPage (`/loans/:requestId/edit`)
-      │              │              └── BorrowRequestPage
-      │              └── NotFoundPage (`*`)
+      │         └── RequestsProvider (знімок колекції, стани операцій, синхронізація)
+      │              └── Outlet
+      │                   ├── HomePage (`/`)
+      │                   ├── CatalogContainer / BookListPage (`/books`)
+      │                   │    ├── PageHeading
+      │                   │    └── Section (Пошук та вибір)
+      │                   │         ├── CatalogSummary
+      │                   │         ├── BookFilters (`useSearchParams`)
+      │                   │         └── BookList
+      │                   │              ├── BookCard (для кожного елемента)
+      │                   │              │    └── AvailabilityBadge
+      │                   │              └── EmptyState (якщо порожньо)
+      │                   ├── BookDetailsPage (`/books/:bookId`)
+      │                   │    ├── PageHeading
+      │                   │    └── AvailabilityBadge
+      │                   ├── BorrowRequestsLayout (`/loans`)
+      │                   │    ├── NavLink (навігація розділу)
+      │                   │    ├── RequestNotice (`useRequests`)
+      │                   │    └── RequestsGate (стани `loading` / `error` / повтор читання)
+      │                   │         └── Outlet
+      │                   │              ├── RequestsPage (`/loans`)
+      │                   │              │    ├── RequestFilters (`useRequestFilters`)
+      │                   │              │    ├── RequestTable
+      │                   │              │    └── EmptyState (порожня колекція або відсутність збігів)
+      │                   │              ├── RequestCreatePage (`/loans/new`)
+      │                   │              │    └── RequestPage
+      │                   │              │         ├── PageHeading
+      │                   │              │         ├── Section (Поля та підсумок)
+      │                   │              │         │    ├── AvailabilityBadge
+      │                   │              │         │    ├── RequestForm (`fieldset`, `FormField`)
+      │                   │              │         │    └── RequestSummary
+      │                   │              │         └── AppButton
+      │                   │              ├── RequestDetailsPage (`/loans/:requestId`)
+      │                   │              │    ├── PageHeading
+      │                   │              │    └── AppButton (асинхронне видалення з підтвердженням)
+      │                   │              └── RequestEditPage (`/loans/:requestId/edit`)
+      │                   │                   └── RequestPage
+      │                   └── NotFoundPage (`*`)
       └── footer
 
-## 2. Контракти ключових компонентів
+Схема залежностей шару даних:
+Сторінки та форми → `RequestsProvider` / хуки → `requestService` → `mockRequestService` або `apiRequestService` → `localStorage` або зовнішній REST API.
+
+## 2. Межі відповідальності інтерфейсу, провайдера та сервісів
+
+| Шар / Модуль | Відповідальність | Чого не повинен знати |
+| :--- | :--- | :--- |
+| `RequestForm` | Керовані поля, відображення помилок, блокування `fieldset` під час подання | URL, HTTP-методи, ключі `localStorage` |
+| Маршрутні сторінки (`Request*Page`) | Параметри URL, сценарій переходу після підтвердженого успіху, захист від переходу закритої сторінки | Формат мережевого пакета, деталі адаптера |
+| `RequestsProvider` | Знімок колекції, стани `loading` / `success` / `error`, `isMutating`, захист від застарілих відповідей | Внутрішній спосіб збереження всередині адаптера |
+| `requestService` | Єдина точка вибору реалізації джерела за `VITE_DATA_SOURCE` | JSX, маршрутизація, навігація |
+| `mockRequestService` / `apiRequestService` | Читання, запис, перетворення зовнішнього формату, помилки `ServiceError` | Стан полів форми, сповіщення UI |
+| `requestValidation` / `requestContract` | Предметні правила, нормалізація вхідних полів та перевірка структури записів | React, мережа, сховище |
+
+## 3. Контракти ключових компонентів
 
 | Компонент | Вхідні властивості (props) | Тип / Домовленість |
 | :--- | :--- | :--- |
-| `AppLayout` | `items` (масив книг) | Спільна оболонка застосунку з тегом `<main>`, навігацією та `BookSelectionProvider` |
-| `BorrowRequestsLayout` | — | Вкладена оболонка розділу заявок з локальним меню навігації та елементом `<Outlet/>` |
-| `PageHeading` | `title` (рядок) | Відображає заголовок `<h1>` та синхронізує `document.title` через `useEffect` |
-| `MainNav` | `links` (масив об'єктів) | Використовує `NavLink` для додавання класу `active` та `aria-current="page"` |
-| `Section` | `id` (рядок), `title` (рядок), `children` (вузли) | Унікальний `id` задає якір та зв'язується із заголовком `h2` через `aria-labelledby` |
-| `BookListPage` | `items`, `selectedId`, `onSelect` | Відображає каталог із фільтрами у URL (`useSearchParams`) та списком карток |
-| `BookDetailsPage` | `items` (масив книг) | Отримує `bookId` з `useParams`, виводить деталі видання або викликає `NotFoundPage` |
-| `BorrowRequestsPage` | `requests` (масив), `items` (масив) | Таблиця демонстраційних заявок із посиланнями на редагування (`/loans/:requestId/edit`) |
-| `BorrowRequestCreatePage`| `items` (масив книг) | Читає `bookId` з `useSearchParams`, формує нову заявку або показує `EmptyState` |
-| `BorrowRequestEditPage`  | `requests` (масив), `items` (масив) | Читає `requestId` з `useParams`, передає початкові дані в `BorrowRequestPage` |
-| `BorrowRequestPage` | `title`, `item`, `initialDraft`, `onCancel` | Універсальний редактор чернетки заявки зі спільним підсумком |
-| `NotFoundPage` | `title` (рядок), `message` (рядок) | Обробка невідомих маршрутів (404) та відсутніх записів |
-| `BookCard` | `item` (об'єкт Book) | Картка книги з посиланням `<Link>` на деталі `/books/:bookId` та кнопкою вибору |
-| `AvailabilityBadge` | `available` (boolean) | Логічний статус для формування підпису наявності книги в бібліотеці |
-| `AppButton` | `children`, `type`, `variant`, `disabled` | Варіанти стилізації: `primary` або `secondary`. За замовчуванням `type="button"` |
+| `AppLayout` | `items` (масив книг) | Спільна оболонка застосунку з `<main>`, навігацією, `BookSelectionProvider` та `RequestsProvider` |
+| `RequestsProvider` | `children` | Керує знімком заявок, викликає `requestService`, надає `status`, `error`, `reload`, `isMutating`, CRUD-методи |
+| `RequestsGate` | `children` | Блокує рендер дочірніх маршрутів розділу заявок під час `loading` або виводить `error` із кнопкою повтору |
+| `BorrowRequestsLayout` | — | Вкладена оболонка розділу заявок із локальним меню, `RequestNotice` та `<RequestsGate><Outlet/></RequestsGate>` |
+| `RequestNotice` | — | Зчитує `notice` із `useRequests` та відображає системне сповіщення про підтверджену операцію |
+| `RequestsPage` | `items` (масив книг) | Відображає кнопку ручного оновлення (`reload`), URL-фільтри `useRequestFilters` та таблицю заявок |
+| `RequestTable` | `requests`, `items`, `onDelete`, `isMutating` | Таблиця заявок із блокуванням кнопок видалення під час виконання мутації |
+| `RequestCreatePage` | `items` (масив книг) | Читає `bookId` з URL, очікує `await createRequest(input)` та переходить до деталей після підтвердження |
+| `RequestEditPage` | `items` (масив книг) | Читає `requestId` з URL, відстежує актуальний `activeId` та очікує `await updateRequest(...)` |
+| `RequestDetailsPage` | `items` (масив книг) | Відображає заявку зі знімка провайдера та виконує асинхронне видалення з підтвердженням |
+| `RequestPage` | `title`, `book`, `initialDraft`, `onSave`, `onCancel`, `submitLabel`, `cancelLabel` | Спільний редактор чернетки з асинхронним `handleSubmit`, блокуванням повторного подання та збереженням введення при відмові |
+| `RequestForm` | `idPrefix`, `bookTitle`, `draft`, `errors`, `operationError`, `isSubmitting`, `onChange`, `onBlur`, `onSubmit`, `onReset`, `submitLabel` | Керована форма з `fieldset disabled={isSubmitting}`, `aria-busy` та `aria-invalid` |
+| `useRequestRecord` | `id` (рядок) | Хук точкового читання через `requestService.getById` із `AbortController`, захистом від застарілого `id` та `retry` |
 
-## 3. Обґрунтування рішень
-1. **Клієнтська маршрутизація (`React Router`)**: Забезпечує переходи між сторінками без перезавантаження документа, зберігаючи стан програми в пам'яті та підтримуючи нативні кнопки браузера «Назад»/«Вперед».
-2. **Фільтри в URL (`useSearchParams`)**: Дозволяють зберігати пошуковий запит `q` та прапорець `available` безпосередньо в адресному рядку браузера. Це надає можливість ділитися посиланням на відфільтровані результати.
-3. **Вкладене компонування (`Outlet`)**: Використання `AppLayout` та `BorrowRequestsLayout` запобігає дублюванню шапки, навігації та підвалу між сторінками.
-4. **Централізована обробка помилок (404)**: Сторінка `NotFoundPage` використовується як для неіснуючих URL-адрес (`*`), так і для випадків, коли книга чи заявка з вказаним ID відсутня в базі.
-
-## 4. Керування станом та джерела URL-даних
-
-### Карта стану та джерел даних
+## 4. Керування станом та джерела даних
 
 | Значення | Категорія | Джерело / Власник | Споживачі | Поведінка при оновленні сторінки |
 | :--- | :--- | :--- | :--- | :--- |
-| `books`, `requests` | Предметні дані | Модулі `src/data/` | Компоненти сторінок | Зберігаються (статичні файли) |
-| `:bookId`, `:requestId` | Параметри шляху URL | `useParams` (`react-router`) | `BookDetailsPage`, `BorrowRequestEditPage` | Повністю відновлюються з URL |
-| `q`, `available` | Пошукові параметри URL | `useSearchParams` (`react-router`) | `useBookFilters`, `BookListPage` | Повністю відновлюються з URL |
-| `selectedId` | Спільний вибір сесії | `BookSelectionProvider` (Context API) | `CatalogContainer`, `BorrowRequestCreatePage` | Скидається до `null` |
-| `draft` | Локальна чернетка | `useState` у `BorrowRequestPage` | `BorrowRequestForm`, `BorrowRequestSummary` | Скидається до початкових значень |
-| `document.title` | Зовнішня синхронізація | `useEffect` у `PageHeading` | DOM браузера (вкладка) | Синхронізується згідно з заголовком |
+| `books` | Довідник (статичний) | Модуль `src/data/books.js` | Каталог, деталі книги, валідація заявок | Зберігається (статичний модуль) |
+| `requests` | Підтверджений знімок | `RequestsProvider` (через `requestService`) | `RequestsPage`, `RequestDetailsPage`, `RequestEditPage` | Перечитується з джерела (`localStorage` у режимі `mock`) |
+| `status` / `error` | Стан читання | `RequestsProvider` | `RequestsGate` | Починається зі стану `loading` до завершення `getAll` |
+| `isMutating` | Стан запису | `RequestsProvider` | `RequestsPage`, `RequestTable`, `RequestDetailsPage` | Скидається у `false` |
+| `draft` | Локальна чернетка | `useState` у `RequestPage` | `RequestForm`, `RequestSummary` | Скидається до початкових значень; зберігається при відмові запису |
+| `selectedId` | Спільний вибір сесії | `BookSelectionProvider` | `CatalogContainer`, `RequestCreatePage` | Скидається до `null` |
+| `:bookId`, `:requestId` | Параметри шляху URL | `useParams` (`react-router`) | `BookDetailsPage`, `RequestDetailsPage`, `RequestEditPage` | Повністю відновлюються з URL |
+| `q`, `readingRoom`, `sort` | Параметри списку заявок | `useSearchParams` (`react-router`) | `useRequestFilters`, `RequestsPage` | Повністю відновлюються з URL |
+
+## 5. Контракт асинхронного сервісу (`requestService`)
+
+Усі помилки рівня даних нормалізуються до екземплярів `ServiceError` із кодами `VALIDATION`, `BAD_DATA`, `NOT_FOUND`, `MOCK_FAILURE`, `STORAGE_READ`, `STORAGE_WRITE`, `NETWORK`, `HTTP`, `CONFIG`.
+
+| Метод | Параметри | Успішний результат (`Promise`) | Поведінка при відмові |
+| :--- | :--- | :--- | :--- |
+| `getAll({ signal })` | Об'єкт із `AbortSignal` | Масив нормалізованих записів `BorrowRequest[]` | Відхиляє `ServiceError` або `AbortError` при скасуванні |
+| `getById(id, { signal })` | `id` (рядок), `{ signal }` | Одиничний об'єкт `BorrowRequest` | Відхиляє `ServiceError` (`code: 'NOT_FOUND'`) або `AbortError` |
+| `create(input)` | Об'єкт полів без `id` | Повний створений запис із призначеним `id` | Відхиляє `ServiceError` (`VALIDATION` або помилка запису/мережі) |
+| `update(id, input)` | `id` (рядок), усі редаговані поля | Повний оновлений запис із незмінним `id` | Відхиляє `ServiceError` (`VALIDATION`, `NOT_FOUND` або збій запису) |
+| `delete(id)` | `id` (рядок) | `undefined` після підтвердження джерелом | Відхиляє `ServiceError` (`NOT_FOUND` або збій видалення) |
+
+На рівні `RequestsProvider` результати мутацій перетворюються на формат `{ ok: true, record }` або `{ ok: false, message, errors, code }` для узгодженої роботи з формами та сторінками.
